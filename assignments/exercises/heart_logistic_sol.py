@@ -1,8 +1,9 @@
 import tensorflow as tf
 from tensorflow.contrib.data import TextLineDataset
 
+DATA_PATH = '../../data/heart.csv'
 N_FEATURES = 9
-BATCH_SIZE = 5
+BATCH_SIZE = 10
 N_CLASS = 2
 
 learning_rate = 0.0001
@@ -21,7 +22,7 @@ entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=Y, name=
 loss = tf.reduce_mean(entropy)
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 
-filename = 'C:/Users/Yi/workspace/project/tensorflow-collection/stanford-tensorflow-tutorials/examples/data/heart.csv'
+filename = DATA_PATH
 
 dataset = TextLineDataset(filename).skip(1)
 
@@ -58,7 +59,8 @@ with tf.Session() as sess:
     for i in range(n_epochs):
         total_loss = 0
         for _ in range(n_batches):
-            X_batch, Y_batch = sess.run(train_next_element)
+            features = tf.nn.l2_normalize(train_next_element[0], dim=0)
+            X_batch, Y_batch = sess.run([features, train_next_element[1]])
             _, loss_batch = sess.run([optimizer, loss], feed_dict={X: X_batch, Y: Y_batch})
             total_loss += loss_batch
         print('Average loss epoch {0}: {1}'.format(i, total_loss / n_batches))
@@ -73,7 +75,9 @@ with tf.Session() as sess:
     total_correct_preds = 0
 
     for i in range(n_batches):
-        X_batch, Y_batch = sess.run(test_next_element)
+        features = tf.nn.l2_normalize(test_next_element[0], dim=0)
+        X_batch, Y_batch = sess.run([features, test_next_element[1]])
+        print(X_batch)
         accuracy_batch = sess.run(accuracy, feed_dict={X: X_batch, Y: Y_batch})
         total_correct_preds += accuracy_batch
 
